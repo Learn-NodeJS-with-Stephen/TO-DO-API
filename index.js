@@ -15,25 +15,15 @@ Routes and Controllers
 //local = feature/..., fix/..., hotfix/... GIT, github, gitlab, bitbucket
 const express = require("express");
 require("dotenv").config();
-const tasksRoutes = require('./routes/tasksRoute')
-
+const tasksRoutes = require("./routes/tasksRoute");
 
 const app = express();
 const PORT = process.env.PORT || 3500;
 
 app.use(express.json());
 
-app.use('/tasks', tasksRoutes)
-
-//TODO-API
-/**
- * Create a task - POST /tasks
- * Get all tasks - GET /tasks
- * Get a task - GET /tasks/:id
- * Update a task - PUT /tasks/:id
- * Delete a task - DELETE /tasks/:id
- */
+app.use("/tasks", tasksRoutes);
 
 app.listen(PORT, () => {
-    console.log(`Server running on ${PORT}`);
+  console.log(`Server running on ${PORT}`);
 });
