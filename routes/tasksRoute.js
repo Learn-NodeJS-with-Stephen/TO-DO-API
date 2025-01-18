@@ -13,6 +13,5 @@ router.put("/:taskId", tasksController.updateTask);
 router.delete("/completed", tasksController.deleteAllCompletedTask);
 router.delete("/:taskId", tasksController.deleteTask);
 router.delete("/", tasksController.deleteAllTask);
-// router.get('/completed', tasksController.getAllTasks);
 
 module.exports = router;

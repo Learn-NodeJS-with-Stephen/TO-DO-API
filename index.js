@@ -16,13 +16,19 @@ Routes and Controllers
 const express = require("express");
 require("dotenv").config();
 const tasksRoutes = require("./routes/tasksRoute");
+const usersRoutes = require("./routes/usersRoute");
+const cors  = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 3500;
 
 app.use(express.json());
+app.use(cors({
+  origin: "*"
+}));
 
 app.use("/tasks", tasksRoutes);
+app.use("/users", usersRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
