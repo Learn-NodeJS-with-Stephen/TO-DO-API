@@ -17,6 +17,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const tasksRoutes = require("./routes/tasksRoute");
+const usersRoutes = require("./routes/usersRoute");
 
 const app = express();
 const PORT = process.env.PORT || 3500;
@@ -28,18 +29,16 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
 app.use("/tasks", tasksRoutes);
-
-//TODO-API
-/**
- * Create a task - POST /tasks
- * Get all tasks - GET /tasks
- * Get a task - GET /tasks/:id
- * Update a task - PUT /tasks/:id
- * Delete a task - DELETE /tasks/:id
- */
+app.use("/users", usersRoutes);
 
 app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
   console.log(`Server running on ${PORT}`);
 });
