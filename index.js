@@ -14,22 +14,31 @@ Routes and Controllers
 //dev = dev, uat, stage,
 //local = feature/..., fix/..., hotfix/... GIT, github, gitlab, bitbucket
 const express = require("express");
+const cors = require("cors");
 require("dotenv").config();
 const tasksRoutes = require("./routes/tasksRoute");
 const usersRoutes = require("./routes/usersRoute");
-const cors  = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 3500;
 
+const corsOptions = {
+  origin: "*",
+  credential: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(cors({
-  origin: "*"
-}));
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
 app.use("/tasks", tasksRoutes);
 app.use("/users", usersRoutes);
 
 app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
   console.log(`Server running on ${PORT}`);
 });
