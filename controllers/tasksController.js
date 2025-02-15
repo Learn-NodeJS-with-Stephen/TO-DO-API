@@ -1,42 +1,48 @@
 const tasks = [];
+const db = require("../config/db");
 // title: string, description: string, completed: boolean
 class TasksController {
   // /save-task -No verbs in your endpoint name
 
   //Create a task
-  createTask(req, res) {
-    const { title, description } = req.body;
-    if (!title) {
-      return res.status(400).json({
-        success: false,
-        message: "Title is required",
+  async createTask(req, res) {
+    try {
+      const { title, description } = req.body;
+      if (!title) {
+        return res.status(400).json({
+          success: false,
+          message: "Title is required",
+        });
+      }
+      const [result] = await db.query("INSERT INTO tasks (title, description) VALUES (?, ?)", [title, description]); // SQL prepared statement
+      const [newTask] = await db.query("SELECT * FROM tasks WHERE id = ?", [result.insertId]);
+      res.status(201).json({
+        success: true,
+        message: "Task created successfully",
+        data: newTask,
       });
+    } catch (err) {
+        res.status(500).json({ error: "Error creating task", details: err.message });
     }
-    const newTask = {
-      id: tasks.length + 1,
-      title: title,
-      description: description || "",
-      completed: false,
-    };
-    tasks.push(newTask);
-    res.status(201).json({
-      success: true,
-      message: "Task created successfully",
-      data: newTask,
-    });
+    
   }
 
-  getAllTasks(req, res) {
-    return res.status(200).json({
-      success: true,
-      message: "All Tasks",
-      data: tasks,
-    });
+  async getAllTasks(req, res) {
+    try {
+      const [tasks] = await db.query("SELECT * FROM tasks");
+      return res.status(200).json({
+        success: true,
+        message: "All Tasks",
+        data: tasks,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Error fetching tasks", details: err.message });
+    }
   }
 
   // Get all unfinished tasks
-  getallUnfinishedTasks(req, res) {
-    const unfinishedTasks = tasks.filter((task) => task.completed == false);
+  async getallUnfinishedTasks(req, res) {
+    const [unfinishedTasks] = await db.query("SELECT * FROM tasks WHERE completed = ?", [0]);
     return res.status(200).json({
       success: true,
       message: "All Unfinished Tasks",
@@ -45,8 +51,8 @@ class TasksController {
   }
 
   // Get all completed tasks
-  getAllCompletedTasks(req, res) {
-    const completedTasks = tasks.filter((task) => task.completed);
+  async getAllCompletedTasks(req, res) {
+    const [completedTasks] = await db.query(" SELECT * FROM tasks WHERE completed = ?", [1]);
     console.log("completedTasks", completedTasks);
     return res.status(200).json({
       success: true,
@@ -56,48 +62,52 @@ class TasksController {
   }
 
   //Get single task
-  getSingleTask(req, res) {
+  async getSingleTask(req, res) {
     const taskId = req.params.taskId;
-    const task = tasks.find((task) => task.id == taskId);
+    // const sql = `SELECT * FROM tasks where id = ${taskId}`; Unprepared statements vulnerable to SQL injection
+    const [rows] = await db.query("SELECT * FROM tasks WHERE id = ?", taskId); //Prepared SQL statement
+    console.log(rows);
     return res.status(200).json({
       success: true,
       message: "Single Task",
-      data: task,
+      data: rows,
     });
   }
 
   //Update task
-  updateTask(req, res) {
+  async updateTask(req, res) {
     const taskId = req.params.taskId;
+    const { title, description, completed } = req.body;
     console.log(taskId);
-    const task = tasks.find((task) => task.id == taskId);
-    if (!task) {
-      return res.status(400).json({
+    const [getTask] = await db.query("SELECT * FROM tasks WHERE id = ?", [taskId]);
+    if(!getTask || getTask.length <= 0) {
+      return res.status(404).json({
         success: false,
         message: "Task not found",
       });
     }
-    const { title, description, completed } = req.body;
-    if (title !== undefined) task.title = title;
-    if (description !== undefined) task.description = description;
-    if (completed !== undefined) task.completed = completed;
+    // console.log( title=== undefined, description=== undefined, completed=== undefined )
+    // console.log(getTask[0].id)
+    // const updateTitle = (title === undefined) ? getTask[0].title : title;
+    // const updateDescription = (description === undefined) ? getTask[0].description : description;
+    // const updateCompleted = (completed === undefined) ? getTask[0].completed : completed;
+    // console.log( updateTitle, updateDescription, updateCompleted )
+    // const [updateTask] = await db.query("UPDATE tasks set title=?, description=?, completed=? WHERE id=?", [updateTitle,  updateDescription, updateCompleted, taskId]);
+    const [updateTask] = await db.query("UPDATE tasks set title=?, description=?, completed=? WHERE id=?", [title || getTask[0].title, description || getTask[0].description, completed || getTask[0].completed, taskId]);
+    const [updatedTask] = await db.query("SELECT * FROM tasks WHERE id = ?", [taskId]);
 
     return res.status(200).json({
       success: true,
       message: "Task updated successfully",
-      data: task,
+      data: updatedTask,
     });
   }
 
   // Delete all completed tasks
-  deleteAllCompletedTask(req, res) {
-    const initialLength = tasks.length;
-    for (let i = tasks.length - 1; i >= 0; i--) {
-      if (tasks[i].completed === true) tasks.splice(i, 1);
-    }
-    // tasks = tasks.filter((task) => task.completed == false); // Keep only unfinished tasks
-    const deletedCount = initialLength - tasks.length;
-
+  async deleteAllCompletedTask(req, res) {
+    const [deleteTask] = await db.query("DELETE FROM tasks WHERE completed = ?", [1]);
+    console.log(deleteTask);
+    const deletedCount = deleteTask.affectedRows;
     return res.status(200).json({
       success: true,
       message: `${deletedCount} completed task(s) deleted successfully`,
@@ -154,6 +164,10 @@ class TasksController {
    * Build your own app
    * 
    */
+
+  //TODO: Assingment: Put everything in try catch block just like the create task fuinction and then integrate it with the frontend
+  //TODO: Assingment: Add an env.example with all the details for DB connection
+  //TODO: Assingment: Properly document your APIs and add steps on how to run the app into your README file
 
 
 

@@ -1,6 +1,12 @@
 
 # A simple TO-DO API
 
+## Steps to install
+- Clone the repository
+- Install all packages using `npm i`
+-
+
+
 ## Endpoints
 - Create Task
 - Get All Tasks
