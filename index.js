@@ -15,36 +15,37 @@ Routes and Controllers
 //local = feature/..., fix/..., hotfix/... GIT, github, gitlab, bitbucket
 const express = require("express");
 require("dotenv").config();
-const db = require('./config/db');
+const db = require("./config/db");
 const tasksRoutes = require("./routes/tasksRoute");
 const usersRoutes = require("./routes/usersRoute");
-const cors  = require("cors");
+const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 3500;
 
 app.use(express.json());
-app.use(cors({
-  origin: "*"
-}));
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
 app.use("/tasks", tasksRoutes);
 app.use("/users", usersRoutes);
 
 db.getConnection()
-  .then(connection => {
-      console.log('Database connected successfully');
+  .then((connection) => {
+    console.log("Database connected successfully");
 
-      app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
-      });
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
   })
-  .catch(err => {
-      console.error('Error connecting to the database:', err);
+  .catch((err) => {
+    console.error("Error connecting to the database:", err);
   });
 
 // Start the server after the database connection is established
-
 
 // app.listen(PORT, () => {
 //   console.log(`Server running on ${PORT}`);
