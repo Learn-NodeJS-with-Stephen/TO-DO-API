@@ -1,5 +1,7 @@
 const tasks = [];
+const jwt = require("jsonwebtoken");
 const db = require("../config/db");
+require("dotenv").config();
 // title: string, description: string, completed: boolean
 class TasksController {
   // /save-task -No verbs in your endpoint name
@@ -14,7 +16,24 @@ class TasksController {
           message: "Title is required",
         });
       }
-      const [result] = await db.query("INSERT INTO tasks (title, description) VALUES (?, ?)", [title, description]); // SQL prepared statement
+      // Check if user is authenticated
+      const authorization = req.header("authorization");
+      if(!authorization) {
+          return res.status(401).json({
+              success: false,
+              message: "Unauthorized",
+          });
+      }
+      // Verify the token
+      const token = authorization.split(" ")[1];
+      const verifiedToken = jwt.verify(token, process.env.JWT_SECRET);
+      if(!verifiedToken) {
+          return res.status(401).json({
+              success: false,
+              message: "Unauthorized",
+          });
+      }
+      const [result] = await db.query("INSERT INTO tasks (title, description, user_id) VALUES (?, ?, ?)", [title, description, verifiedToken.id]); // SQL prepared statement
       const [newTask] = await db.query("SELECT * FROM tasks WHERE id = ?", [result.insertId]);
       res.status(201).json({
         success: true,
@@ -42,6 +61,7 @@ class TasksController {
 
   // Get all unfinished tasks
   async getallUnfinishedTasks(req, res) {
+    // const [unfinishedTasks] = await db.query("SELECT * FROM tasks WHERE user_id = ? AND completed = ?",[userId, 0]);
     const [unfinishedTasks] = await db.query("SELECT * FROM tasks WHERE completed = ?", [0]);
     return res.status(200).json({
       success: true,
