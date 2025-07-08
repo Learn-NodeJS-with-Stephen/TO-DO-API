@@ -16,14 +16,14 @@ require("dotenv").config();
 class UsersController {
     async createUser(req, res) {
         const { name, email, password } = req.body;
-        if(!name || !email || !password) {
+        if (!name || !email || !password) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required",
             });
         }
         const [existingUser] = await db.query("SELECT * FROM users WHERE email = ? LIMIT 1", [email]);
-        if(existingUser && existingUser.length > 0) {
+        if (existingUser && existingUser.length > 0) {
             return res.status(400).json({
                 success: false,
                 message: "User already exists",
@@ -47,7 +47,7 @@ class UsersController {
     async loginUser(req, res) {
         try {
             const { email, password } = req.body;
-            if( !email || !password) {
+            if (!email || !password) {
                 return res.status(400).json({
                     success: false,
                     message: "All fields are required",
@@ -55,30 +55,30 @@ class UsersController {
             }
             const [result] = await db.query("SELECT * FROM users WHERE email = ? LIMIT 1", [email]);
 
-            if(!result || result.length < 1) {
+            if (!result || result.length < 1) {
                 return res.status(400).json({
                     success: false,
                     message: "User not found",
                 });
             }
-            if(!bcrypt.compareSync(password, result[0].password)) {
+            if (!bcrypt.compareSync(password, result[0].password)) {
                 return res.status(401).json({
                     success: false,
                     message: "Invalid email or password",
                 });
             }
             // Generate a signed jwt for the user to login
-            const payload = { 
-                id: result[0].id, 
-                email: result[0].email 
+            const payload = {
+                id: result[0].id,
+                email: result[0].email
             }
             const { password: _, ...userData } = result[0];
             const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
             const data = {
-                user: userData,
-                token: token
-            }
-            //TODO: Crate centralized response handler
+                    user: userData,
+                    token: token
+                }
+                //TODO: Crate centralized response handler
             res.json({
                 success: true,
                 message: "Login successful",
@@ -86,29 +86,12 @@ class UsersController {
             });
         } catch (error) {
             res.status(500).json({ error: "Error occurred", details: error.message });
-          }
-       
+        }
+
     }
 
     async getUserTasks(req, res) {
-        // Check if user is authenticated
-        const authorization = req.header("authorization");
-        if(!authorization) {
-            return res.status(401).json({
-                success: false,
-                message: "Unauthorized",
-            });
-        }
-        // Verify the token
-        const token = authorization.split(" ")[1];
-        const verifiedToken = jwt.verify(token, process.env.JWT_SECRET);
-        if(!verifiedToken) {
-            return res.status(401).json({
-                success: false,
-                message: "Unauthorized",
-            });
-        }
-        const userId = verifiedToken.id;
+        const userId = req.user.id;
         const [tasks] = await db.query("SELECT * FROM tasks WHERE user_id =?", [userId]);
         res.json({
             success: true,
@@ -123,8 +106,8 @@ class UsersController {
 //TODO: 22/2/2025: Implement Login and sign up pages on the frontend
 
 //TODO: 08/07/2025: Implement task management with token authorization and middleware handling.
-// -Middlewares
-// -Task management
+// -Middlewares ✅
+// -Task management ✅
 // -Task creation
 // -Task update
 // -Task deletion
