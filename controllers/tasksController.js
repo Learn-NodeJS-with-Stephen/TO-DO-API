@@ -4,8 +4,6 @@ const db = require("../config/db");
 require("dotenv").config();
 // title: string, description: string, completed: boolean
 class TasksController {
-  // /save-task -No verbs in your endpoint name
-
   //Create a task
   async createTask(req, res) {
     try {
@@ -19,24 +17,29 @@ class TasksController {
       //Authorization begins
       // Check if user is authenticated
       const authorization = req.header("authorization");
-      if(!authorization) {
-          return res.status(401).json({
-              success: false,
-              message: "Unauthorized",
-          });
+      if (!authorization) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
       }
       // Verify the token
       const token = authorization.split(" ")[1];
       const verifiedToken = jwt.verify(token, process.env.JWT_SECRET);
-      if(!verifiedToken) {
-          return res.status(401).json({
-              success: false,
-              message: "Unauthorized",
-          });
+      if (!verifiedToken) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
       }
       //Authorization ends
-      const [result] = await db.query("INSERT INTO tasks (title, description, user_id) VALUES (?, ?, ?)", [title, description, verifiedToken.id]); // SQL prepared statement
-      const [newTask] = await db.query("SELECT * FROM tasks WHERE id = ?", [result.insertId]);
+      const [result] = await db.query(
+        "INSERT INTO tasks (title, description, user_id) VALUES (?, ?, ?)",
+        [title, description, verifiedToken.id]
+      ); // SQL prepared statement
+      const [newTask] = await db.query("SELECT * FROM tasks WHERE id = ?", [
+        result.insertId,
+      ]);
       res.status(201).json({
         success: true,
         message: "Task created successfully",
@@ -66,11 +69,14 @@ class TasksController {
     }
   }
 
-  // Get all unfinished tasks 
+  // Get all unfinished tasks
   //TODO: Add user_id
   async getallUnfinishedTasks(req, res) {
     // const [unfinishedTasks] = await db.query("SELECT * FROM tasks WHERE user_id = ? AND completed = ?",[userId, 0]);
-    const [unfinishedTasks] = await db.query("SELECT * FROM tasks WHERE completed = ?", [0]);
+    const [unfinishedTasks] = await db.query(
+      "SELECT * FROM tasks WHERE completed = ?",
+      [0]
+    );
     return res.status(200).json({
       success: true,
       message: "All Unfinished Tasks",
@@ -103,8 +109,7 @@ class TasksController {
   async getSingleTask(req, res) {
     try {
       const taskId = req.params.taskId;
-      // const sql = `SELECT * FROM tasks where id = ${taskId}`; Unprepared statements vulnerable to SQL injection
-      const [rows] = await db.query("SELECT * FROM task WHERE id = ?", taskId); //Prepared SQL statement
+      const [rows] = await db.query("SELECT * FROM tasks WHERE id = ?", taskId);
       console.log(rows);
       return res.status(200).json({
         success: true,
@@ -124,7 +129,7 @@ class TasksController {
       const taskId = req.params.taskId;
       const { title, description, completed } = req.body;
       console.log(taskId);
-      const [getTask] = await db.query("SELECT * FROM task WHERE id = ?", [
+      const [getTask] = await db.query("SELECT * FROM tasks WHERE id = ?", [
         taskId,
       ]);
       if (!getTask || getTask.length <= 0) {
@@ -133,15 +138,8 @@ class TasksController {
           message: "Task not found",
         });
       }
-      // console.log( title=== undefined, description=== undefined, completed=== undefined )
-      // console.log(getTask[0].id)
-      // const updateTitle = (title === undefined) ? getTask[0].title : title;
-      // const updateDescription = (description === undefined) ? getTask[0].description : description;
-      // const updateCompleted = (completed === undefined) ? getTask[0].completed : completed;
-      // console.log( updateTitle, updateDescription, updateCompleted )
-      // const [updateTask] = await db.query("UPDATE tasks set title=?, description=?, completed=? WHERE id=?", [updateTitle,  updateDescription, updateCompleted, taskId]);
       const [updateTask] = await db.query(
-        "UPDATE task set title=?, description=?, completed=? WHERE id=?",
+        "UPDATE tasks set title=?, description=?, completed=? WHERE id=?",
         [
           title || getTask[0].title,
           description || getTask[0].description,
@@ -149,7 +147,7 @@ class TasksController {
           taskId,
         ]
       );
-      const [updatedTask] = await db.query("SELECT * FROM task WHERE id = ?", [
+      const [updatedTask] = await db.query("SELECT * FROM tasks WHERE id = ?", [
         taskId,
       ]);
 
