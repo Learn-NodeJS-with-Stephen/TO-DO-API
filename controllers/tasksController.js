@@ -15,26 +15,6 @@ class TasksController {
         });
       }
 
-      // //Authorization begins
-      // // Check if user is authenticated
-      // const authorization = req.header("authorization");
-      // if (!authorization) {
-      //   return res.status(401).json({
-      //     success: false,
-      //     message: "Unauthorized",
-      //   });
-      // }
-      // // Verify the token
-      // const token = authorization.split(" ")[1];
-      // const verifiedToken = jwt.verify(token, process.env.JWT_SECRET);
-      // if (!verifiedToken) {
-      //   return res.status(401).json({
-      //     success: false,
-      //     message: "Unauthorized",
-      //   });
-      // }
-      // //Authorization ends
-
       const userId = req.user.id;
 
       const [result] = await db.query(
