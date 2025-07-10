@@ -14,32 +14,38 @@ class TasksController {
           message: "Title is required",
         });
       }
-      //Authorization begins
-      // Check if user is authenticated
-      const authorization = req.header("authorization");
-      if (!authorization) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
-      }
-      // Verify the token
-      const token = authorization.split(" ")[1];
-      const verifiedToken = jwt.verify(token, process.env.JWT_SECRET);
-      if (!verifiedToken) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
-      }
-      //Authorization ends
+
+      // //Authorization begins
+      // // Check if user is authenticated
+      // const authorization = req.header("authorization");
+      // if (!authorization) {
+      //   return res.status(401).json({
+      //     success: false,
+      //     message: "Unauthorized",
+      //   });
+      // }
+      // // Verify the token
+      // const token = authorization.split(" ")[1];
+      // const verifiedToken = jwt.verify(token, process.env.JWT_SECRET);
+      // if (!verifiedToken) {
+      //   return res.status(401).json({
+      //     success: false,
+      //     message: "Unauthorized",
+      //   });
+      // }
+      // //Authorization ends
+
+      const userId = req.user.id;
+
       const [result] = await db.query(
         "INSERT INTO tasks (title, description, user_id) VALUES (?, ?, ?)",
-        [title, description, verifiedToken.id]
-      ); // SQL prepared statement
+        [title, description, userId]
+      );
+
       const [newTask] = await db.query("SELECT * FROM tasks WHERE id = ?", [
         result.insertId,
       ]);
+
       res.status(201).json({
         success: true,
         message: "Task created successfully",
@@ -72,7 +78,6 @@ class TasksController {
   // Get all unfinished tasks
   //TODO: Add user_id
   async getallUnfinishedTasks(req, res) {
-    // const [unfinishedTasks] = await db.query("SELECT * FROM tasks WHERE user_id = ? AND completed = ?",[userId, 0]);
     const [unfinishedTasks] = await db.query(
       "SELECT * FROM tasks WHERE completed = ?",
       [0]
@@ -85,7 +90,6 @@ class TasksController {
   }
 
   // Get all completed tasks
-  //TODO: Add user_id
   async getAllCompletedTasks(req, res) {
     try {
       const [completedTasks] = await db.query(
@@ -163,7 +167,6 @@ class TasksController {
     }
   }
   // Delete all completed tasks
-  //TODO: Add user_id
   async deleteAllCompletedTask(req, res) {
     try {
       const [deleteTask] = await db.query(
@@ -198,9 +201,6 @@ class TasksController {
           message: "Task not found",
         });
       }
-
-      //Find the index of the task in the tasks array and then remove it from the array
-
       const [deleteResult] = await db.query("DELETE FROM task WHERE id = ?", [
         taskId,
       ]);
@@ -218,7 +218,6 @@ class TasksController {
   }
 
   // Delete all tasks
-  //TODO: Add user_id
   async deleteAllTask(req, res) {
     try {
       const [deleteResult] = await db.query("DELETE FROM task");
