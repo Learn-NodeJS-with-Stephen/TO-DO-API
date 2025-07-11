@@ -45,7 +45,6 @@ db.getConnection()
     console.error("Error connecting to the database:", err);
   });
 
-// Start the server after the database connection is established
 
 // app.listen(PORT, () => {
 //   console.log(`Server running on ${PORT}`);
