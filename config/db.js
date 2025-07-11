@@ -17,11 +17,3 @@ const pool = mysql.createPool({
 
 module.exports = pool.promise();
 
-//install mysql2
-//setup your db.js use .env
-//setup your connection too in th index.js
-// CRUD
-// C - Create - INSERT
-// R - Read - SELECT
-// U - Update - UPDATE
-// D - Delete - DELETE
